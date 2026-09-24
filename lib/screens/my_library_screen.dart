@@ -1,0 +1,1690 @@
+// lib/screens/my_library_screen.dart
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import '../app/bugarai_theme.dart';
+import '../widgets/fg_card.dart';
+import '../widgets/app_snackbar.dart';
+import '../core/app_strings.dart';
+import '../data/exercise_data.dart';
+import '../widgets/active_set_sheet.dart';
+
+// ============================================================
+// MY LIBRARY SCREEN
+// Custom workout builder + saved custom workouts + custom session
+// ============================================================
+
+class MyLibraryScreen extends StatefulWidget {
+  final String userId;
+  final bool openCreate;
+
+  const MyLibraryScreen({
+    super.key,
+    required this.userId,
+    this.openCreate = false,
+  });
+
+  @override
+  State<MyLibraryScreen> createState() => _MyLibraryScreenState();
+}
+
+class _MyLibraryScreenState extends State<MyLibraryScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.openCreate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _openCreateWorkout();
+      });
+    }
+  }
+
+  void _openCreateWorkout() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomWorkoutBuilderScreen(
+          userId: widget.userId,
+        ),
+      ),
+    );
+  }
+
+  void _openEditWorkout(String workoutId, Map<String, dynamic> data) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomWorkoutBuilderScreen(
+          userId: widget.userId,
+          workoutId: workoutId,
+          existingData: data,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteWorkout(String workoutId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: BugarAITheme.cardDark,
+        title: Text(AppStrings.get('library_delete_confirm')),
+        content: Text(AppStrings.get('library_delete_sub')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppStrings.get('cancel')),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: BugarAITheme.error),
+            child: Text(
+              AppStrings.get('delete'),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .collection('customWorkouts')
+          .doc(workoutId)
+          .delete();
+
+      if (mounted) {
+        AppSnackbar.showSuccess(
+          context,
+          AppStrings.get('library_delete_success'),
+        );
+      }
+    }
+  }
+
+  String _bodyPartEmoji(String bodyPart) {
+    switch (bodyPart.toLowerCase()) {
+      case 'chest':
+        return '🏋️';
+      case 'back':
+        return '🔙';
+      case 'legs':
+        return '🦵';
+      case 'arms':
+        return '💪';
+      case 'shoulders':
+        return '🤸';
+      case 'core':
+        return '🔥';
+      case 'cardio':
+        return '❤️';
+      case 'mixed':
+        return '⚡';
+      default:
+        return '⚡';
+    }
+  }
+
+  Color _bodyPartColor(String bodyPart) {
+    switch (bodyPart.toLowerCase()) {
+      case 'chest':
+        return BugarAITheme.error;
+      case 'back':
+        return Colors.blue;
+      case 'legs':
+        return BugarAITheme.success;
+      case 'arms':
+        return BugarAITheme.warning;
+      case 'shoulders':
+        return Colors.purple;
+      case 'core':
+        return Colors.teal;
+      case 'cardio':
+        return Colors.pink;
+      default:
+        return BugarAITheme.primary;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: BugarAITheme.background,
+      appBar: AppBar(
+        backgroundColor: BugarAITheme.cardDark,
+        title: Text(AppStrings.get('library_title')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openCreateWorkout,
+        backgroundColor: BugarAITheme.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: Text(
+          AppStrings.get('library_create'),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    BugarAITheme.primary.withValues(alpha: 0.28),
+                    BugarAITheme.primary.withValues(alpha: 0.08),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: BugarAITheme.primary.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Text('📚', style: TextStyle(fontSize: 28)),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppStrings.get('library_title'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          AppStrings.get('library_sub'),
+                          style: TextStyle(
+                            color: BugarAITheme.muted,
+                            fontSize: 12,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(widget.userId)
+                  .collection('customWorkouts')
+                  .orderBy('updatedAt', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return _buildEmptyState();
+                }
+                final docs = snapshot.data!.docs;
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final doc = docs[index];
+                    final data = doc.data() as Map<String, dynamic>;
+                    final name = data['name'] ?? 'My Workout';
+                    final bodyPart = data['bodyPart'] ?? 'Mixed';
+                    final exercises =
+                    (data['exercises'] as List<dynamic>? ?? []);
+                    final color = _bodyPartColor(bodyPart);
+                    final emoji = _bodyPartEmoji(bodyPart);
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      child: FGCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    color: color.withValues(alpha: 0.18),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      emoji,
+                                      style: const TextStyle(fontSize: 26),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          _miniTag(bodyPart, color),
+                                          const SizedBox(width: 6),
+                                          _miniTag(
+                                            '${exercises.length} exercises',
+                                            BugarAITheme.teal,
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (exercises.isNotEmpty)
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: exercises.take(4).map((e) {
+                                  final map = e as Map<String, dynamic>;
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: BugarAITheme.background,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      map['name'] ?? 'Exercise',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: BugarAITheme.muted,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            if (exercises.length > 4) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                '+${exercises.length - 4} more exercises',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: BugarAITheme.muted,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              CustomWorkoutSessionScreen(
+                                                userId: widget.userId,
+                                                workoutName: name,
+                                                workoutId: doc.id,
+                                                exercises: exercises
+                                                    .map((e) =>
+                                                Map<String, dynamic>.from(
+                                                    e as Map))
+                                                    .toList(),
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.play_arrow,
+                                        color: Colors.white, size: 18),
+                                    label: Text(
+                                      AppStrings.get('library_start'),
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: color,
+                                      minimumSize:
+                                      const Size(double.infinity, 44),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                _circleActionButton(
+                                  icon: Icons.edit_outlined,
+                                  color: BugarAITheme.primary,
+                                  onTap: () => _openEditWorkout(doc.id, data),
+                                ),
+                                const SizedBox(width: 8),
+                                _circleActionButton(
+                                  icon: Icons.delete_outline,
+                                  color: BugarAITheme.error,
+                                  onTap: () => _deleteWorkout(doc.id),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                color: BugarAITheme.card,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.library_books_outlined,
+                size: 52,
+                color: BugarAITheme.muted,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              AppStrings.get('library_empty'),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppStrings.get('library_empty_sub'),
+              style: TextStyle(
+                color: BugarAITheme.muted,
+                fontSize: 13,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 18),
+            ElevatedButton.icon(
+              onPressed: _openCreateWorkout,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: Text(
+                AppStrings.get('library_create_first'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: BugarAITheme.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _miniTag(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _circleActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: color, size: 20),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// CUSTOM WORKOUT BUILDER SCREEN
+// ============================================================
+
+class CustomWorkoutBuilderScreen extends StatefulWidget {
+  final String userId;
+  final String? workoutId;
+  final Map<String, dynamic>? existingData;
+
+  const CustomWorkoutBuilderScreen({
+    super.key,
+    required this.userId,
+    this.workoutId,
+    this.existingData,
+  });
+
+  @override
+  State<CustomWorkoutBuilderScreen> createState() =>
+      _CustomWorkoutBuilderScreenState();
+}
+
+class _CustomWorkoutBuilderScreenState
+    extends State<CustomWorkoutBuilderScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+
+  String _selectedBodyPart = 'All';
+  String _searchQuery = '';
+  bool _saving = false;
+
+  final Map<String, Map<String, dynamic>> _selectedExercises = {};
+
+  bool get _isEditing => widget.workoutId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingData != null) {
+      _nameController.text = widget.existingData!['name'] ?? '';
+      final exercises =
+      (widget.existingData!['exercises'] as List<dynamic>? ?? []);
+      for (final item in exercises) {
+        final map = Map<String, dynamic>.from(item as Map);
+        final id = map['exerciseId'];
+        if (id != null) {
+          _selectedExercises[id] = map;
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<String> get _bodyParts => [
+    'All',
+    'Chest',
+    'Back',
+    'Legs',
+    'Shoulders',
+    'Biceps',
+    'Triceps',
+    'Core',
+    'Cardio',
+  ];
+
+  List<Exercise> get _filteredExercises {
+    List<Exercise> list = _selectedBodyPart == 'All'
+        ? ExerciseData.getAllExercises()
+        : ExerciseData.getByBodyPart(_selectedBodyPart);
+
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      list = list.where((e) {
+        return e.name.toLowerCase().contains(q) ||
+            e.equipment.toLowerCase().contains(q) ||
+            e.bodyPart.toLowerCase().contains(q);
+      }).toList();
+    }
+    return list;
+  }
+
+  String _deriveWorkoutBodyPart() {
+    if (_selectedExercises.isEmpty) return 'Mixed';
+    final bodyParts = _selectedExercises.values
+        .map((e) => (e['bodyPart'] ?? 'Mixed').toString())
+        .toSet()
+        .toList();
+    if (bodyParts.length == 1) return bodyParts.first;
+    return 'Mixed';
+  }
+
+  Future<void> _saveWorkout() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      AppSnackbar.showWarning(context, AppStrings.get('library_name_hint'));
+      return;
+    }
+    if (_selectedExercises.isEmpty) {
+      AppSnackbar.showWarning(context, 'At least 1 exercise select karo');
+      return;
+    }
+
+    setState(() => _saving = true);
+
+    final payload = {
+      'name': name,
+      'bodyPart': _deriveWorkoutBodyPart(),
+      'exercises': _selectedExercises.values.toList(),
+      'updatedAt': FieldValue.serverTimestamp(),
+      if (!_isEditing) 'createdAt': FieldValue.serverTimestamp(),
+    };
+
+    final ref = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .collection('customWorkouts');
+
+    if (_isEditing) {
+      await ref.doc(widget.workoutId).update(payload);
+    } else {
+      await ref.add(payload);
+    }
+
+    if (mounted) {
+      setState(() => _saving = false);
+      AppSnackbar.showSuccess(
+        context,
+        _isEditing
+            ? 'Workout updated successfully ✅'
+            : 'Workout saved successfully ✅',
+      );
+      Navigator.pop(context);
+    }
+  }
+
+  void _toggleExercise(Exercise exercise) {
+    final exists = _selectedExercises.containsKey(exercise.id);
+    setState(() {
+      if (exists) {
+        _selectedExercises.remove(exercise.id);
+      } else {
+        _selectedExercises[exercise.id] = {
+          'exerciseId': exercise.id,
+          'name': exercise.name,
+          'bodyPart': exercise.bodyPart,
+          'sets': 3,
+          'reps': '12',
+          'equipment': exercise.equipment,
+        };
+      }
+    });
+  }
+
+  void _editExerciseConfig(Exercise exercise) {
+    final data = _selectedExercises[exercise.id];
+    if (data == null) return;
+
+    int selectedSets = (data['sets'] ?? 3) as int;
+    final repsController =
+    TextEditingController(text: (data['reps'] ?? '12').toString());
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: BugarAITheme.cardDark,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  exercise.name,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 18),
+                Text(AppStrings.get('label_sets'),
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Row(
+                  children: ExerciseData.setsOptions.map((s) {
+                    final sel = selectedSets == s;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => setModalState(() => selectedSets = s),
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: sel
+                                ? BugarAITheme.primary
+                                : BugarAITheme.background,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$s',
+                              style: TextStyle(
+                                color: sel
+                                    ? Colors.white
+                                    : BugarAITheme.muted,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 18),
+                Text(AppStrings.get('label_reps_time'),
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: repsController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Example: 12 or 45 sec',
+                    hintStyle: TextStyle(color: BugarAITheme.muted),
+                    filled: true,
+                    fillColor: BugarAITheme.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedExercises[exercise.id] = {
+                          ..._selectedExercises[exercise.id]!,
+                          'sets': selectedSets,
+                          'reps': repsController.text.trim().isEmpty
+                              ? '12'
+                              : repsController.text.trim(),
+                        };
+                      });
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: BugarAITheme.primary,
+                    ),
+                    child: Text(
+                      AppStrings.get('library_save_config'),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _bodyPartEmoji(String bodyPart) {
+    switch (bodyPart.toLowerCase()) {
+      case 'chest':
+        return '🏋️';
+      case 'back':
+        return '🔙';
+      case 'legs':
+        return '🦵';
+      case 'shoulders':
+        return '🤸';
+      case 'biceps':
+      case 'triceps':
+        return '💪';
+      case 'core':
+        return '🔥';
+      case 'cardio':
+        return '❤️';
+      default:
+        return '⚡';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedList = _selectedExercises.values.toList();
+
+    return Scaffold(
+      backgroundColor: BugarAITheme.background,
+      appBar: AppBar(
+        backgroundColor: BugarAITheme.cardDark,
+        title: Text(
+          _isEditing
+              ? AppStrings.get('library_edit')
+              : AppStrings.get('library_create'),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _saving ? null : _saveWorkout,
+            child: _saving
+                ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+                : Text(
+              AppStrings.get('library_save'),
+              style: const TextStyle(
+                color: BugarAITheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _nameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: AppStrings.get('library_name_hint'),
+                    hintStyle: TextStyle(color: BugarAITheme.muted),
+                    prefixIcon: Icon(Icons.drive_file_rename_outline,
+                        color: BugarAITheme.muted),
+                    filled: true,
+                    fillColor: BugarAITheme.card,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _searchController,
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: AppStrings.get('library_search_hint'),
+                    hintStyle: TextStyle(color: BugarAITheme.muted),
+                    prefixIcon: Icon(Icons.search, color: BugarAITheme.muted),
+                    filled: true,
+                    fillColor: BugarAITheme.card,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 42,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              children: _bodyParts.map((part) {
+                final selected = _selectedBodyPart == part;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedBodyPart = part),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? BugarAITheme.primary.withValues(alpha: 0.2)
+                            : BugarAITheme.card,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: selected
+                              ? BugarAITheme.primary
+                              : Colors.transparent,
+                        ),
+                      ),
+                      child: Text(
+                        part == 'All' ? 'All' : '${_bodyPartEmoji(part)} $part',
+                        style: TextStyle(
+                          color: selected
+                              ? BugarAITheme.primary
+                              : BugarAITheme.muted,
+                          fontSize: 12,
+                          fontWeight:
+                          selected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (selectedList.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 18),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: BugarAITheme.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: BugarAITheme.primary.withValues(alpha: 0.15),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        AppStrings.get('library_selected'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${selectedList.length}',
+                        style: const TextStyle(
+                          color: BugarAITheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  ...selectedList.map((item) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item['name'] ?? 'Exercise',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: BugarAITheme.background,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${item['sets']} × ${item['reps']}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: BugarAITheme.muted,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              final exercise = ExerciseData.getAllExercises()
+                                  .firstWhere(
+                                      (e) => e.id == item['exerciseId']);
+                              _editExerciseConfig(exercise);
+                            },
+                            child: const Icon(Icons.edit_outlined,
+                                size: 18, color: BugarAITheme.primary),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedExercises.remove(item['exerciseId']);
+                              });
+                            },
+                            child: const Icon(Icons.close,
+                                size: 18, color: BugarAITheme.error),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          if (selectedList.isNotEmpty) const SizedBox(height: 12),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
+              itemCount: _filteredExercises.length,
+              itemBuilder: (context, index) {
+                final exercise = _filteredExercises[index];
+                final selected = _selectedExercises.containsKey(exercise.id);
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (selected) {
+                        _editExerciseConfig(exercise);
+                      } else {
+                        _toggleExercise(exercise);
+                      }
+                    },
+                    child: FGCard(
+                      child: Row(
+                        children: [
+                          // FIXED: was pointing at a non-existent placeholder
+                          // asset — now uses the exercise's real bundled GIF
+                          // with a safe fallback icon.
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              exercise.gifAsset,
+                              width: 72,
+                              height: 72,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  width: 72,
+                                  height: 72,
+                                  decoration: BoxDecoration(
+                                    color: BugarAITheme.background,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(Icons.fitness_center,
+                                      color: Colors.white24),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  exercise.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${exercise.bodyPart} • ${exercise.equipment}',
+                                  style: TextStyle(
+                                    color: BugarAITheme.muted,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                if (selected)
+                                  Text(
+                                    '${_selectedExercises[exercise.id]!['sets']} × ${_selectedExercises[exercise.id]!['reps']}',
+                                    style: const TextStyle(
+                                      color: BugarAITheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Checkbox(
+                            value: selected,
+                            onChanged: (v) {
+                              if (selected) {
+                                setState(() {
+                                  _selectedExercises.remove(exercise.id);
+                                });
+                              } else {
+                                _toggleExercise(exercise);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// CUSTOM WORKOUT SESSION SCREEN
+// ============================================================
+
+class CustomWorkoutSessionScreen extends StatefulWidget {
+  final String userId;
+  final String workoutName;
+  final String workoutId;
+  final List<Map<String, dynamic>> exercises;
+
+  const CustomWorkoutSessionScreen({
+    super.key,
+    required this.userId,
+    required this.workoutName,
+    required this.workoutId,
+    required this.exercises,
+  });
+
+  @override
+  State<CustomWorkoutSessionScreen> createState() =>
+      _CustomWorkoutSessionScreenState();
+}
+
+class _CustomWorkoutSessionScreenState
+    extends State<CustomWorkoutSessionScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  bool _started = false;
+  String? _sessionId;
+  DateTime? _startTime;
+  final List<Map<String, dynamic>> _loggedSets = [];
+
+  Exercise? _findExercise(String exerciseId) {
+    try {
+      return ExerciseData.getAllExercises()
+          .firstWhere((e) => e.id == exerciseId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _startWorkout() async {
+    final docRef = await _firestore
+        .collection('users')
+        .doc(widget.userId)
+        .collection('workouts')
+        .add({
+      'type': widget.workoutName,
+      'source': 'custom_library',
+      'customWorkoutId': widget.workoutId,
+      'startedAt': FieldValue.serverTimestamp(),
+      'status': 'active',
+      'sets': [],
+      'totalSets': 0,
+      'plannedExercises': widget.exercises,
+    });
+
+    setState(() {
+      _started = true;
+      _sessionId = docRef.id;
+      _startTime = DateTime.now();
+    });
+
+    if (mounted) {
+      AppSnackbar.showSuccess(
+        context,
+        AppStrings.get('library_workout_started'),
+      );
+    }
+  }
+
+  Future<void> _logSet(String exercise, double weight, String reps) async {
+    final setData = {
+      'exercise': exercise,
+      'weight': weight,
+      'reps': reps,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+
+    setState(() => _loggedSets.add(setData));
+
+    if (_sessionId != null) {
+      await _firestore
+          .collection('users')
+          .doc(widget.userId)
+          .collection('workouts')
+          .doc(_sessionId)
+          .update({
+        'sets': FieldValue.arrayUnion([setData]),
+        'totalSets': _loggedSets.length,
+      });
+    }
+  }
+
+  void _startNextSet() {
+    if (widget.exercises.isEmpty) return;
+
+    Map<String, dynamic>? nextExercise;
+    int doneCount = 0;
+    int targetCount = 1;
+
+    for (final ex in widget.exercises) {
+      final name = (ex['name'] ?? 'Exercise').toString();
+      final target = (ex['sets'] ?? 1) as int;
+      final done = _loggedSets.where((s) => s['exercise'] == name).length;
+      if (done < target) {
+        nextExercise = ex;
+        doneCount = done;
+        targetCount = target;
+        break;
+      }
+    }
+
+    nextExercise ??= widget.exercises.first;
+
+    final exerciseObj =
+    _findExercise((nextExercise['exerciseId'] ?? '').toString());
+    final lastWeight = _loggedSets.lastWhere(
+          (s) => s['exercise'] == nextExercise!['name'],
+      orElse: () => {'weight': 20.0},
+    )['weight'] as double? ??
+        20.0;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ActiveSetSheet(
+        exercise: exerciseObj,
+        exerciseNameFallback:
+        (nextExercise!['name'] ?? 'Exercise').toString(),
+        initialWeight: lastWeight,
+        initialReps: (nextExercise['reps'] ?? '12').toString(),
+        setLabel: 'Set ${doneCount + 1} of $targetCount',
+        onSetLogged: (weight, reps, durationSeconds, toFailure)  async{
+          await _logSet(
+            (nextExercise!['name'] ?? 'Exercise').toString(),
+            weight,
+            reps,
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _finishWorkout() async {
+    if (_sessionId == null) return;
+
+    final duration = _startTime != null
+        ? DateTime.now().difference(_startTime!).inMinutes
+        : 0;
+
+    await _firestore
+        .collection('users')
+        .doc(widget.userId)
+        .collection('workouts')
+        .doc(_sessionId)
+        .update({
+      'endedAt': FieldValue.serverTimestamp(),
+      'status': 'completed',
+      'duration': duration,
+      'totalSets': _loggedSets.length,
+    });
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: BugarAITheme.cardDark,
+          title: Text(AppStrings.get('library_workout_complete')),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(AppStrings.get('library_workout_done')),
+              const SizedBox(height: 16),
+              Text(AppStrings.get('library_sets_logged',
+                  params: {'count': '${_loggedSets.length}'})),
+              Text(AppStrings.get('library_duration_min',
+                  params: {'min': '$duration'})),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              style:
+              ElevatedButton.styleFrom(backgroundColor: BugarAITheme.primary),
+              child: Text(
+                AppStrings.get('done'),
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _confirmExit() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: BugarAITheme.cardDark,
+        title: Text(AppStrings.get('library_exit_workout')),
+        content: Text(AppStrings.get('library_exit_sub')),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: Text(
+              AppStrings.get('library_discard'),
+              style: const TextStyle(color: BugarAITheme.error),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _finishWorkout();
+            },
+            style:
+            ElevatedButton.styleFrom(backgroundColor: BugarAITheme.success),
+            child: Text(
+              AppStrings.get('library_save_exit'),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: BugarAITheme.background,
+      appBar: AppBar(
+        backgroundColor: BugarAITheme.cardDark,
+        title: Text(
+          '${widget.workoutName} 🔥',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          onPressed: () {
+            if (_started && _loggedSets.isNotEmpty) {
+              _confirmExit();
+            } else {
+              Navigator.pop(context);
+            }
+          },
+        ),
+        actions: [
+          if (_started)
+            TextButton(
+              onPressed: _finishWorkout,
+              child: Text(
+                AppStrings.get('library_finish'),
+                style: const TextStyle(
+                    color: BugarAITheme.success, fontWeight: FontWeight.bold),
+              ),
+            ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FGCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.workoutName,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${widget.exercises.length} selected exercises',
+                    style: TextStyle(color: BugarAITheme.muted),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            if (!_started)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _startWorkout,
+                  icon: const Icon(Icons.play_arrow, color: Colors.white),
+                  label: Text(
+                    AppStrings.get('library_start_workout'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: BugarAITheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+            if (_started) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Workout Progress',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: BugarAITheme.success.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.timer,
+                            size: 16, color: BugarAITheme.success),
+                        const SizedBox(width: 4),
+                        StreamBuilder(
+                          stream:
+                          Stream.periodic(const Duration(seconds: 1)),
+                          builder: (context, snapshot) {
+                            final minutes = _startTime != null
+                                ? DateTime.now()
+                                .difference(_startTime!)
+                                .inMinutes
+                                : 0;
+                            return Text(
+                              '$minutes min',
+                              style: const TextStyle(
+                                color: BugarAITheme.success,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ],
+            Text(
+              AppStrings.get('library_planned'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 10),
+            ...widget.exercises.map((item) {
+              final exercise =
+              _findExercise((item['exerciseId'] ?? '').toString());
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: FGCard(
+                  child: Row(
+                    children: [
+                      // FIXED: same placeholder-asset bug fixed here too.
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: exercise != null
+                            ? Image.asset(
+                          exercise.gifAsset,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                color: BugarAITheme.background,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.fitness_center,
+                                  color: Colors.white24),
+                            );
+                          },
+                        )
+                            : Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            color: BugarAITheme.background,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.fitness_center,
+                              color: Colors.white24),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item['name'] ?? 'Exercise',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${item['sets']} × ${item['reps']}',
+                              style: TextStyle(
+                                  color: BugarAITheme.primary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item['bodyPart'] ?? '',
+                              style: TextStyle(
+                                  color: BugarAITheme.muted, fontSize: 11),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            if (_started) ...[
+              const SizedBox(height: 18),
+              Text(
+                AppStrings.get('library_logged'),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 10),
+              if (_loggedSets.isEmpty)
+                FGCard(
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.add_circle_outline,
+                            size: 38, color: BugarAITheme.muted),
+                        const SizedBox(height: 8),
+                        Text(
+                          AppStrings.get('library_no_sets'),
+                          style: TextStyle(color: BugarAITheme.muted),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ...List.generate(_loggedSets.length, (index) {
+                  final set = _loggedSets[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: FGCard(
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: BugarAITheme.primary
+                                  .withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: BugarAITheme.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  set['exercise'],
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '${set['weight']} kg • ${set['reps']}',
+                                  style: TextStyle(
+                                      color: BugarAITheme.muted,
+                                      fontSize: 12),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.check_circle,
+                              color: BugarAITheme.success),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _startNextSet,
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: Text(
+                    AppStrings.get('library_log_set'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: BugarAITheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _finishWorkout,
+                  icon: const Icon(Icons.check, color: BugarAITheme.success),
+                  label: Text(
+                    AppStrings.get('library_finish'),
+                    style: TextStyle(
+                      color: BugarAITheme.success,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: BugarAITheme.success),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+}
