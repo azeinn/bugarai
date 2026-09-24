@@ -91,12 +91,12 @@ class LanguageSelectorDialog {
             ),
             const SizedBox(height: 12),
 
-            // Roman Urdu Option
+            // Indonesian Option
             _buildLanguageOption(
               context: context,
-              icon: '🇵🇰',
-              title: AppStrings.get('language_urdu'),
-              subtitle: 'Roman Urdu mein',
+              icon: '🇮🇩',
+              title: AppStrings.get('language_indonesian'),
+              subtitle: 'Dalam Bahasa Indonesia',
               isSelected: !isEnglish,
               onTap: () {
                 if (isEnglish) {

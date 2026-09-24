@@ -286,7 +286,7 @@ class _CaloriesScreenState extends State<CaloriesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Kis meal mein add karein? 🍽️',
+              'Tambahkan ke makanan mana? 🍽️',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 16),
@@ -398,7 +398,7 @@ class _CaloriesScreenState extends State<CaloriesScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Current ${mealType.toUpperCase()} ko saved meal bana do.',
+              'Jadikan ${mealType.toUpperCase()} saat ini sebagai makanan tersimpan.',
               style: const TextStyle(color: BugarAITheme.muted, fontSize: 12),
             ),
             const SizedBox(height: 14),
@@ -603,7 +603,7 @@ class _CaloriesScreenState extends State<CaloriesScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Ye fallback option hai. Better experience ke liye Search Food use karo.',
+                    'Ini opsi cadangan. Gunakan Cari Makanan untuk pengalaman yang lebih baik.',
                     style: TextStyle(
                       color: BugarAITheme.muted,
                       fontSize: 12,

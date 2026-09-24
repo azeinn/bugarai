@@ -71,8 +71,8 @@ class OpenFoodFactsService {
         quantity: quantityLabel,
         isHealthy: isHealthy,
         healthTip: grade != null
-            ? 'Nutri-Score: ${grade.toUpperCase()} — ${isHealthy ? "acha choice hai!" : "kam khao, ya alternative dhoondo."}'
-            : 'Nutri-Score is product ke lia available nahi hai.',
+            ? 'Nutri-Score: ${grade.toUpperCase()} — ${isHealthy ? "pilihan bagus!" : "kurangi konsumsi, atau cari alternatif."}'
+            : 'Nutri-Score tidak tersedia untuk produk ini.',
       );
     } catch (e) {
       debugPrint('❌ OpenFoodFacts exception: $e');

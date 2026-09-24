@@ -236,8 +236,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>
                   const SizedBox(height: 4),
                   Text(
                     isRestDay
-                        ? 'Recovery & stretch karo aaj'
-                        : 'AI will generate your workout plan',
+                        ? 'Pulih & regangkan badan hari ini'
+                        : 'AI akan membuat rencana workout Anda',
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

@@ -1,5 +1,5 @@
 // lib/screens/language_selection_screen.dart
-// First Screen — User selects app language (English / Roman Urdu)
+// First Screen — User selects app language (English / Indonesian)
 
 import 'package:flutter/material.dart';
 import '../app/bugarai_theme.dart';
@@ -100,10 +100,10 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Roman Urdu Option
+              // Indonesian Option
               _buildLanguageCard(
-                title: AppStrings.get('language_urdu'),
-                subtitle: 'Roman Urdu mein',
+                title: AppStrings.get('language_indonesian'),
+                subtitle: 'Dalam Bahasa Indonesia',
                 isSelected: !_selectedEnglish,
                 onTap: () => _selectLanguage(false),
               ),
@@ -124,7 +124,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                     ),
                   ),
                   child: Text(
-                    _selectedEnglish ? 'Continue' : 'Aagay Barho',
+                    _selectedEnglish ? 'Continue' : 'Lanjutkan',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

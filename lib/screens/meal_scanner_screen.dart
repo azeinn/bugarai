@@ -419,7 +419,7 @@ class _MealScannerScreenState extends State<MealScannerScreen>
           ),
           const SizedBox(height: 6),
           Text(
-            'Camera se click karo ya gallery se pick karo',
+            'Klik dari kamera atau pilih dari galeri',
             style: TextStyle(color: BugarAITheme.muted, fontSize: 12),
             textAlign: TextAlign.center,
           ),

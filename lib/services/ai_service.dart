@@ -73,10 +73,10 @@ class AIService {
 
     if (bytes.length > 10 * 1024 * 1024) {
       return MealAnalysis(
-        foodName: 'Image Too Large', foodNameHindi: 'Photo bahut badi hai',
+        foodName: 'Image Too Large', foodNameHindi: 'Foto terlalu besar',
         calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0,
         quantity: '0', isHealthy: false,
-        healthTip: 'Photo 10MB se chhoti honi chahiye. Compress karke bhejo.',
+        healthTip: 'Foto harus lebih kecil dari 10MB. Coba kompres foto.',
       );
     }
 
@@ -86,7 +86,7 @@ class AIService {
     final isEnglish = LanguageProvider().isEnglish;
     final tipLanguage = isEnglish
         ? 'Write the healthTip in plain English.'
-        : 'Write the healthTip in Roman Urdu / Hinglish (Hindi+English mix, Latin script only, no Hindi script).';
+        : 'Write the healthTip in Bahasa Indonesia (Indonesian language).';
 
     final prompt = '''
 You are a nutrition and fitness assistant.
@@ -105,7 +105,7 @@ Analyze this food image carefully.
 Return ONLY a valid JSON object (no markdown, no code blocks, just pure JSON):
 {
   "foodName": "English name",
-  "foodNameHindi": "Local/common name (e.g. Roti, Dal, Biryani)",
+  "foodNameHindi": "Local/common Indonesian name (e.g. Nasi Goreng, Rendang, Gado-Gado)",
   "calories": 250, "protein": 10, "carbs": 30, "fat": 8, "fiber": 3,
   "quantity": "1 plate or 1 serving",
   "isHealthy": true,
@@ -174,10 +174,10 @@ All numbers should be integers. isHealthy should be boolean.''';
 
   MealAnalysis _getDefaultMealAnalysis() {
     return MealAnalysis(
-      foodName: 'Food Item', foodNameHindi: 'Khana',
+      foodName: 'Food Item', foodNameHindi: 'Makanan',
       calories: 200, protein: 8, carbs: 25, fat: 8, fiber: 3,
       quantity: '1 serving', isHealthy: true,
-      healthTip: 'Analysis nahi ho payi. Manually enter karo ya clear photo lo.',
+      healthTip: 'Analisis tidak berhasil. Masukkan manual atau ambil foto yang lebih jelas.',
     );
   }
 
@@ -191,9 +191,9 @@ All numbers should be integers. isHealthy should be boolean.''';
     debugPrint('🚀 AI Chat Started');
 
     final cleanMessage = _sanitizeInput(userMessage);
-    if (cleanMessage.isEmpty) return 'Kuch toh likh bhai! 😄';
-    if (!isConfigured) return '❌ API Key set nahi hai! .env file check kar.';
-    if (cleanMessage.length > 500) return 'Bhai message thoda chhota rakh — 500 characters max! ✂️';
+    if (cleanMessage.isEmpty) return 'Silakan tulis sesuatu! 😄';
+    if (!isConfigured) return '❌ Kunci API tidak diatur! Periksa file .env.';
+    if (cleanMessage.length > 500) return 'Pesan terlalu panjang — maksimal 500 karakter! ✂️';
 
     try {
       final userContext = await _getUserContext(uid);
@@ -213,13 +213,13 @@ If a user mentions pain, injury, chest pain, dizziness, pregnancy, diabetes, hea
 
 Always remind users that your responses are for informational purposes only and are not a substitute for professional medical advice.
 
-Tu "BugarAI" hai ek friendly AI Fitness Coach!
+Kamu adalah "BugarAI", AI Fitness Coach yang ramah!
 
-📋 LANGUAGE RULES: Response HINGLISH mein de (Hindi + English MIX)
-• English: workout, calories, protein, exercise, sets, reps, diet, goal
-• Hindi: karo, hai, hain, tera, mera, acha, bahut, ke liye, mein, se
-• Casual & friendly — gym buddy ki tarah baat karo
-• DO NOT use pure Hindi script
+📋 LANGUAGE RULES: Tulis respons dalam Bahasa Indonesia
+• Gunakan Bahasa Indonesia yang santai dan mudah dipahami
+• Sebutkan istilah fitness seperti workout, kalori, protein, latihan, set, rep, diet, tujuan
+• Gaya bicara seperti teman gym yang supportive
+• Jangan gunakan bahasa selain Bahasa Indonesia
 
 👤 USER INFO:
 • Name: ${userContext['name']} | Goal: ${userContext['goal']}
@@ -378,12 +378,12 @@ Max 150 words:''';
     final name = context['name'] ?? 'Champ';
 
     if (msg.contains('workout') || msg.contains('exercise') || msg.contains('gym')) {
-      return '''💪 Hey $name! Workout tips chahiye?\n\n🎯 Quick Tips:\n• Warm-up zaroor karo (5-10 min)\n• Compound exercises pe focus karo\n• Progressive overload important hai\n• Rest days bhi zaroori hain!\n\n🔥 Let's crush it bhai! 💪''';
+      return '''💪 Hai $name! Mau tips workout?\n\n🎯 Tips Cepat:\n• Jangan lupa pemanasan (5-10 menit)\n• Fokus pada latihan kompon\n• Progresif overload penting\n• Hari istirahat juga penting!\n\n🔥 Ayo kita crush it! 💪''';
     }
     if (msg.contains('diet') || msg.contains('food') || msg.contains('calories') || msg.contains('protein')) {
-      return '''🍽️ Hey $name! Diet tips:\n\n• Protein har meal mein include karo\n• Processed food avoid karo\n• Vegetables zyada khao\n• Water 3-4 liters daily\n\n🔥 Consistency is key! 🎯''';
+      return '''🍽️ Hai $name! Tips diet:\n\n• Sertakan protein di setiap makanan\n• Hindari makanan olahan\n• Perbanyak sayuran\n• Minum air 3-4 liter sehari\n\n🔥 Konsistensi adalah kunci! 🎯''';
     }
-    return '''👋 Hey $name!\n\nMain BugarAI hun - tera AI Fitness Coach! 🤖\n\nKya jaanna hai?\n• 💪 Workouts\n• 🍽️ Nutrition\n• 🔥 Motivation\n\nPooch lo! 🚀''';
+    return '''👋 Hai $name!\n\nSaya BugarAI - Pelatih Kebugaran AI Anda! 🤖\n\nMau tahu apa?\n• 💪 Workout\n• 🍽️ Nutrisi\n• 🔥 Motivasi\n\nTanya saja! 🚀''';
   }
 
   Future<void> _saveChatHistory(String uid, String userMsg, String aiResponse) async {
@@ -425,7 +425,7 @@ Do not provide medical advice or rehabilitation programs.
 
 If the workout request involves injuries, pain, surgery recovery, pregnancy, or any medical condition, recommend consulting a qualified healthcare professional before exercising.
 
-All workout plans are for general fitness purposes only. $cleanType workout plan de in Hinglish.
+All workout plans are for general fitness purposes only. Berikan workout plan $cleanType dalam Bahasa Indonesia.
 Client: ${userContext['name']}, Level: $level
 Format: 🔥 Name | ⚡ Warm-up | 💪 Main (5-6 exercises sets x reps) | 🧘 Cool down | 💡 Tip''';
 
@@ -439,9 +439,9 @@ Format: 🔥 Name | ⚡ Warm-up | 💪 Main (5-6 exercises sets x reps) | 🧘 C
 
   String _getOfflineWorkout(String type) {
     final workouts = {
-      'chest': '🔥 CHEST WORKOUT\n\n⚡ WARM-UP\n• Arm circles - 30 sec\n• Push-up hold - 30 sec\n\n💪 MAIN\n1. Bench Press - 4x10-12\n2. Incline DB Press - 4x12\n3. Cable Flyes - 3x15\n4. Dips - 3x12\n5. Push-ups - 3xFailure\n\n💡 Mind-muscle connection important hai!\n\n🔥 Chest day is BEST day! 💪',
-      'back': '🔥 BACK WORKOUT\n\n⚡ WARM-UP\n• Band pull-aparts - 15 reps\n• Dead hangs - 30 sec\n\n💪 MAIN\n1. Pull-ups - 4x8-10\n2. Barbell Rows - 4x10\n3. Lat Pulldown - 3x12\n4. DB Rows - 3x12\n5. Face Pulls - 3x15\n\n💡 Squeeze your back at top!\n\n🔥 Strong back = Strong everything! 🎯',
-      'legs': '🔥 LEG WORKOUT\n\n⚡ WARM-UP\n• Bodyweight squats - 15 reps\n• Leg swings - 10 each\n\n💪 MAIN\n1. Squats - 4x8-10\n2. Romanian Deadlift - 4x10\n3. Leg Press - 3x12\n4. Lunges - 3x12 each\n5. Calf Raises - 4x15\n\n💡 Never skip leg day!\n\n🔥 Leg day = Best day! 🦵💪',
+      'chest': '🔥 WORKOUT DADA\n\n⚡ PEMANASAN\n• Putaran lengan - 30 dtk\n• Tahan push-up - 30 dtk\n\n💪 UTAMA\n1. Bench Press - 4x10-12\n2. Incline DB Press - 4x12\n3. Cable Flyes - 3x15\n4. Dips - 3x12\n5. Push-ups - 3xFailure\n\n💡 Koneksi pikiran-otot penting!\n\n🔥 Hari dada adalah hari TERBAIK! 💪',
+      'back': '🔥 WORKOUT PUNGGUNG\n\n⚡ PEMANASAN\n• Band pull-aparts - 15 rep\n• Dead hangs - 30 dtk\n\n💪 UTAMA\n1. Pull-ups - 4x8-10\n2. Barbell Rows - 4x10\n3. Lat Pulldown - 3x12\n4. DB Rows - 3x12\n5. Face Pulls - 3x15\n\n💡 Tekan punggung di posisi atas!\n\n🔥 Punggung kuat = Semua kuat! 🎯',
+      'legs': '🔥 WORKOUT KAKI\n\n⚡ PEMANASAN\n• Bodyweight squats - 15 rep\n• Ayunan kaki - 10 tiap sisi\n\n💪 UTAMA\n1. Squats - 4x8-10\n2. Romanian Deadlift - 4x10\n3. Leg Press - 3x12\n4. Lunges - 3x12 tiap sisi\n5. Calf Raises - 4x15\n\n💡 Jangan pernah skip hari kaki!\n\n🔥 Hari kaki = Hari terbaik! 🦵💪',
     };
     return workouts[type.toLowerCase()] ?? workouts['chest']!;
   }
@@ -480,7 +480,7 @@ class MealAnalysis {
 
       return MealAnalysis(
         foodName: (json['foodName']?.toString() ?? 'Food Item').substring(0, (json['foodName']?.toString() ?? 'Food Item').length.clamp(0, 100)),
-        foodNameHindi: (json['foodNameHindi']?.toString() ?? 'Khana').substring(0, (json['foodNameHindi']?.toString() ?? 'Khana').length.clamp(0, 100)),
+        foodNameHindi: (json['foodNameHindi']?.toString() ?? 'Makanan').substring(0, (json['foodNameHindi']?.toString() ?? 'Makanan').length.clamp(0, 100)),
         calories: _parseInt(json['calories']).clamp(0, 5000),
         protein: _parseInt(json['protein']).clamp(0, 500),
         carbs: _parseInt(json['carbs']).clamp(0, 1000),
@@ -493,10 +493,10 @@ class MealAnalysis {
     } catch (e) {
       debugPrint('❌ JSON parse error: $e');
       return MealAnalysis(
-        foodName: 'Food Item', foodNameHindi: 'Khana',
+        foodName: 'Food Item', foodNameHindi: 'Makanan',
         calories: 200, protein: 10, carbs: 25, fat: 8, fiber: 3,
         quantity: '1 serving', isHealthy: true,
-        healthTip: 'Photo se identify nahi ho paya. Clear photo lo.',
+        healthTip: 'Tidak dapat mengidentifikasi dari foto. Coba foto yang lebih jelas.',
       );
     }
   }

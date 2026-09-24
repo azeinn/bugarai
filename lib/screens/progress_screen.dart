@@ -283,15 +283,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
     final insight = await _aiService.chat(
       uid: widget.userId,
-      userMessage: '''Mera is week ka progress analyze karo:
+      userMessage: '''Analisis progres minggu saya:
 - Workouts: $_thisWeekWorkouts
-- Total calories: $_totalCaloriesBurned
+- Total kalori: $_totalCaloriesBurned
 - Total protein: ${_totalProtein}g
-- Avg calories: $_avgCalories/day
-- Streak: $_currentStreak days
-- Current weight: $_currentWeight kg
+- Rata-rata kalori: $_avgCalories/hari
+- Streak: $_currentStreak hari
+- Berat saat ini: $_currentWeight kg
 
-Short motivating feedback do (2-3 lines max) with tips.''',
+Berikan umpan balik motivasi singkat (maksimal 2-3 baris) dengan tips.''',
     );
 
     setState(() {

@@ -92,7 +92,7 @@ class WorkoutPlansData {
     difficulty: 'Intermediate',
     estimatedMinutes: 60,
     description:
-    'Complete push workout targeting chest, shoulders aur triceps. Compound movements se start, isolation pe end.',
+    'Workout push lengkap yang menargetkan dada, bahu, dan triceps. Mulai dari gerakan kompon, akhiri dengan isolasi.',
     category: 'push',
     targetMuscles: ['Chest', 'Front Delts', 'Side Delts', 'Triceps'],
     exercises: [
@@ -167,7 +167,7 @@ class WorkoutPlansData {
     difficulty: 'Intermediate',
     estimatedMinutes: 55,
     description:
-    'Complete pull workout. Back thickness aur width dono ke liye exercises. Biceps aur rear delts bhi covered.',
+    'Workout pull lengkap. Latihan untuk ketebalan dan lebar punggung. Biceps dan rear delts juga tercakup.',
     category: 'pull',
     targetMuscles: ['Lats', 'Middle Back', 'Rear Delts', 'Biceps', 'Traps'],
     exercises: [
@@ -242,7 +242,7 @@ class WorkoutPlansData {
     difficulty: 'Intermediate',
     estimatedMinutes: 60,
     description:
-    'Complete leg workout. Squats se start, isolation pe end. Calves mat bhoolna!',
+    'Workout kaki lengkap. Mulai dari squat, akhiri dengan isolasi. Jangan lupa betis!',
     category: 'legs',
     targetMuscles: ['Quads', 'Hamstrings', 'Glutes', 'Calves'],
     exercises: [
@@ -264,7 +264,7 @@ class WorkoutPlansData {
         exerciseId: 'legs_3', // Romanian Deadlift
         sets: 3,
         reps: '10',
-        notes: 'Hip hinge — hamstring stretch feel karo',
+        notes: 'Hip hinge — rasakan regangan hamstring',
         restSeconds: 90,
       ),
       PlanExercise(
@@ -278,7 +278,7 @@ class WorkoutPlansData {
         exerciseId: 'legs_6', // Leg Extensions
         sets: 3,
         reps: '15',
-        notes: 'Quad isolation — squeeze top pe',
+        notes: 'Isolasi quad — kontraksi di posisi atas',
         restSeconds: 60,
       ),
       PlanExercise(
@@ -299,7 +299,7 @@ class WorkoutPlansData {
         exerciseId: 'legs_10', // Hip Thrusts
         sets: 3,
         reps: '12',
-        notes: 'Glute squeeze — 2 sec hold top pe',
+        notes: 'Kontraksi glute — tahan 2 detik di posisi atas',
         restSeconds: 75,
       ),
     ],
@@ -317,7 +317,7 @@ class WorkoutPlansData {
     difficulty: 'Intermediate',
     estimatedMinutes: 65,
     description:
-    'Complete upper body — sab upper muscles ek din mein. Push-pull supersets bhi kar sakte ho.',
+    'Upper body lengkap — semua otot bagian atas dalam satu hari. Superset push-pull juga bisa dilakukan.',
     category: 'upper',
     targetMuscles: [
       'Chest',
@@ -398,7 +398,7 @@ class WorkoutPlansData {
     difficulty: 'Intermediate',
     estimatedMinutes: 55,
     description:
-    'Lower body complete — legs aur core dono. Functional strength builder.',
+    'Lower body lengkap — kaki dan core keduanya. Pembentuk kekuatan fungsional.',
     category: 'lower',
     targetMuscles: ['Quads', 'Hamstrings', 'Glutes', 'Core', 'Calves'],
     exercises: [
@@ -473,7 +473,7 @@ class WorkoutPlansData {
     difficulty: 'Intermediate',
     estimatedMinutes: 70,
     description:
-    'Ek workout mein sab muscles cover. Beginners ke liye 3x/week ya busy schedule ke liye perfect.',
+    'Semua otot tercakup dalam satu workout. Sempurna untuk pemula 3x/minggu atau jadwal yang sibuk.',
     category: 'full_body',
     targetMuscles: [
       'Chest',
@@ -584,7 +584,7 @@ class WorkoutPlansData {
     difficulty: 'Beginner',
     estimatedMinutes: 40,
     description:
-    'Cardio exercises + core work. Fat burning aur core strengthening combo. Rest day ke baad perfect.',
+    'Latihan kardio + core. Kombinasi pembakaran lemak dan penguatan core. Sempurna setelah hari istirahat.',
     category: 'cardio',
     targetMuscles: ['Heart', 'Abs', 'Obliques', 'Full Body'],
     exercises: [
@@ -666,7 +666,7 @@ class WorkoutPlansData {
     difficulty: 'Beginner',
     estimatedMinutes: 45,
     description:
-    'Complete arm workout. Biceps aur triceps supersets for maximum pump. Gun show ready!',
+    'Workout lengan lengkap. Superset biceps dan triceps untuk pump maksimal. Siap pamer otot!',
     category: 'arms',
     targetMuscles: ['Biceps', 'Triceps', 'Forearms'],
     exercises: [

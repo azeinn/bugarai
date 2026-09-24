@@ -24,6 +24,7 @@ import 'screens/onboarding_screen.dart';
 // NEW IMPORTS - Phase 1 language system
 import 'core/hive_boxes.dart';
 import 'core/language_provider.dart';
+import 'core/app_strings.dart';
 import 'screens/language_selection_screen.dart';
 
 Future<void> main() async {
@@ -297,25 +298,25 @@ class _AuthGateState extends State<AuthGate> {
                         children: [
                           const Icon(Icons.email, color: Colors.blue, size: 64),
                           const SizedBox(height: 16),
-                          const Text(
-                            'Email Verify Karo!',
-                            style: TextStyle(
+                          Text(
+                            AppStrings.get('auth_verify_email'),
+                            style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'Email pe verification link bheja hai. Verify karo phir login karo.',
+                          Text(
+                            AppStrings.get('auth_verify_sub'),
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey),
+                            style: const TextStyle(color: Colors.grey),
                           ),
                           const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: () async {
                               await user.reload();
                             },
-                            child: const Text('Check karo'),
+                            child: Text(AppStrings.get('auth_check_again')),
                           ),
                           TextButton(
                             onPressed: () async {

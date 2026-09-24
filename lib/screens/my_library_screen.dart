@@ -603,7 +603,7 @@ class _CustomWorkoutBuilderScreenState
       return;
     }
     if (_selectedExercises.isEmpty) {
-      AppSnackbar.showWarning(context, 'At least 1 exercise select karo');
+      AppSnackbar.showWarning(context, 'Pilih minimal 1 latihan');
       return;
     }
 

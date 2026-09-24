@@ -1,5 +1,5 @@
 // lib/core/language_provider.dart
-// Language Provider — Persists user language preference
+// Language Provider — Persists user language preference (English / Indonesian)
 
 import 'package:flutter/material.dart';
 import 'hive_boxes.dart';
@@ -27,7 +27,7 @@ class LanguageProvider extends ChangeNotifier {
   // ──────────────────────────────────────────
   void setLanguage(bool isEnglish) {
     _isEnglish = isEnglish;
-    HiveBoxes.settingsBox.put('language', _isEnglish ? 'en' : 'ur');
+    HiveBoxes.settingsBox.put('language', _isEnglish ? 'en' : 'id');
     notifyListeners();
   }
 

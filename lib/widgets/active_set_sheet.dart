@@ -80,7 +80,7 @@ class _ActiveSetSheetState extends State<ActiveSetSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Set save nahi hua, dobara try karo')),
+          const SnackBar(content: Text('Set tidak tersimpan, coba lagi')),
         );
       }
     }

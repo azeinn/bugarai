@@ -302,8 +302,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
           const SizedBox(height: 12),
           _selectableCard(
-            label: AppStrings.get('language_urdu'),
-            description: 'Roman Urdu mein',
+            label: AppStrings.get('language_indonesian'),
+            description: 'Dalam Bahasa Indonesia',
             icon: Icons.language,
             selected: !_selectedEnglish,
             onTap: () => setState(() => _selectedEnglish = false),
@@ -485,9 +485,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ==========================================
   Widget _fitnessLevelPage() {
     final levels = [
-      {'label': 'Beginner', 'desc': 'Abhi shuru kar raha/rahi hoon'},
-      {'label': 'Intermediate', 'desc': 'Kuch mahino se active hoon'},
-      {'label': 'Advanced', 'desc': 'Regular training kar raha/rahi hoon'},
+      {'label': 'Beginner', 'desc': 'Baru memulai'},
+      {'label': 'Intermediate', 'desc': 'Aktif beberapa bulan terakhir'},
+      {'label': 'Advanced', 'desc': 'Latihan secara teratur'},
     ];
 
     return _pageWrapper(
